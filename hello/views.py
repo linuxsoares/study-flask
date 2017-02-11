@@ -2,7 +2,8 @@ from flask import request
 
 from hello.tasks import add
 from flask import render_template, jsonify
-import models as dbHandler
+from models import User
+from database import db_session
 
 
 def hello_world():
@@ -28,11 +29,15 @@ def test():
 
 
 def home():
+    add.delay(9,9)
     if request.method=='POST':
         username = request.form['username']
         password = request.form['password']
-        dbHandler.insertUser(username, password)
-        users = dbHandler.retrieveUsers()
+        user = User(name=username, password=password)
+        db_session.add(user)
+        db_session.commit()
+        users = User.query.all()
         return render_template('index.html', users=users)
     else:
-        return render_template('index.html')
+        users = User.query.all()
+        return render_template('index.html', users=users)
